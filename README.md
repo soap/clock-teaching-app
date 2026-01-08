@@ -89,8 +89,31 @@ php artisan serve --host=0.0.0.0
 
 ### สำหรับครู
 
-#### 1. หน้าเมนูครู
-เปิดเบราว์เซอร์ไปที่: `http://localhost:8000/teacher`
+#### 🔐 การเข้าสู่ระบบ (สำคัญ!)
+
+**หน้าครูต้องมีการ Login เพื่อความปลอดภัย**
+
+1. สร้างบัญชีครู (ครั้งแรก):
+   - ไปที่ `http://localhost:8000/register`
+   - กรอกข้อมูล: ชื่อ, อีเมล, รหัสผ่าน
+   - ลงทะเบียน
+
+2. เข้าสู่ระบบ:
+   - ไปที่ `http://localhost:8000/login`
+   - หรือคลิก "เข้าสู่ระบบ" จากหน้าหลัก
+   - ใส่อีเมลและรหัสผ่านที่ลงทะเบียนไว้
+
+3. หลัง Login แล้วจะเข้าถึงหน้าครูได้ที่:
+   - เมนู: `http://localhost:8000/teacher`
+   - Dashboard: `http://localhost:8000/dashboard`
+
+💡 **ทำไมต้อง Login?**
+- ป้องกันไม่ให้นักเรียนหรือบุคคลอื่นเข้ามาแก้ไขโจทย์
+- เหมาะสำหรับ deploy บน internet
+- สามารถควบคุมได้ว่าใครมีสิทธิ์เป็นครู
+
+#### 1. หน้าเมนูครู (`/teacher`)
+เมื่อ login แล้ว เข้าไปที่: `http://localhost:8000/teacher`
 - เลือกประเภทโจทย์ที่ต้องการสอน
 - ปัจจุบันมี: **บอกเวลา** (เปิดใช้งาน), **นาฬิกาช้า/เร็ว** (เร็วๆ นี้)
 
@@ -107,12 +130,14 @@ php artisan serve --host=0.0.0.0
 
 ### สำหรับนักเรียน
 
-#### 1. หน้าเมนูนักเรียน
+#### 1. หน้าเมนูนักเรียน (`/student`)
 เปิดเบราว์เซอร์ไปที่: `http://localhost:8000/student`
+- **ไม่ต้อง login** - เปิดใช้งานได้เลย
 - เลือกประเภทโจทย์ที่ต้องการฝึก
 - **แจ้งเตือนพิเศษ**: เมื่อครูเปิดโจทย์ จะแสดงกล่องสีเหลืองแจ้งให้เข้าร่วมทันที
 
 #### 2. หน้าฝึกโจทย์ "บอกเวลา" (`/student/tell-a-time`)
+- **ไม่ต้อง login** - เหมาะสำหรับฉายบนจอ Projector
 - หน้าจอจะ sync กับครูโดยอัตโนมัติ (polling ทุก 1 วินาที)
 - แสดงนาฬิกา Analog พร้อมคำใบ้การอ่านเวลา
 - เมื่อครูกด "แสดงคำตอบ" จะแสดงเฉลยบนหน้าจอ
@@ -216,13 +241,79 @@ php artisan serve --host=0.0.0.0 --port=8000
 
 📖 ดูรายละเอียดเพิ่มเติมใน [MULTI_QUESTION_IMPLEMENTATION.md](MULTI_QUESTION_IMPLEMENTATION.md)
 
+#### การเพิ่มระบบแบบฝึกหัดที่ต้อง Login (Future Feature)
+
+สำหรับการพัฒนาระบบแบบฝึกหัดส่วนตัวที่นักเรียนต้อง login:
+
+**1. แยก Routes ชัดเจน:**
+```php
+// Public - ไม่ต้อง login (สำหรับห้องเรียน/ฉายจอ)
+Route::get('/student', ...);              // เมนูดูโจทย์จากครู
+Route::get('/student/tell-a-time', ...);  // ดูโจทย์บอกเวลา
+
+// Private - ต้อง login (สำหรับฝึกหัดส่วนตัว)
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/practice', ...);                    // เมนูแบบฝึกหัด
+    Route::get('/practice/tell-a-time', ...);        // ฝึกหัดบอกเวลา
+    Route::post('/practice/submit-answer', ...);     // ส่งคำตอบ
+    Route::get('/practice/history', ...);            // ประวัติการทำ
+    Route::get('/practice/leaderboard', ...);        // กระดานคะแนน
+});
+```
+
+**2. Database Schema:**
+```php
+// Migration: create_practice_sessions_table
+Schema::create('practice_sessions', function (Blueprint $table) {
+    $table->id();
+    $table->foreignId('user_id')->constrained()->onDelete('cascade');
+    $table->string('question_type'); // 'tell-a-time', 'clock-fast-slow'
+    $table->json('question_data');   // เก็บโจทย์
+    $table->json('student_answer');  // คำตอบของนักเรียน
+    $table->boolean('is_correct');   // ถูก/ผิด
+    $table->integer('time_taken');   // เวลาที่ใช้ (วินาที)
+    $table->integer('score');        // คะแนน
+    $table->timestamps();
+});
+
+// Migration: add_role_to_users_table
+Schema::table('users', function (Blueprint $table) {
+    $table->enum('role', ['teacher', 'student'])->default('student');
+    $table->string('student_id')->nullable(); // รหัสนักเรียน
+    $table->string('grade')->nullable();      // ชั้นเรียน
+});
+```
+
+**3. Components:**
+- `PracticeMenu.vue` - เมนูเลือกแบบฝึกหัด
+- `PracticeTellATime.vue` - หน้าฝึกหัดบอกเวลา (มีระบบตรวจคำตอบ)
+- `PracticeHistory.vue` - ประวัติการทำแบบฝึกหัด
+- `Leaderboard.vue` - กระดานคะแนน
+
+**4. ข้อดี:**
+- นักเรียนแต่ละคนมี account ของตัวเอง
+- ติดตามความก้าวหน้า เก็บคะแนน
+- ครูดูสถิติของนักเรียนได้
+- Gamification: badges, leaderboard, achievements
+
+**5. การสมัครสมาชิก:**
+- ครูสร้าง class code
+- นักเรียนใช้ class code สมัคร
+- ครูอนุมัติการเข้าร่วม
+
 ## 🎯 Roadmap
 
-- ✅ ระบบบอกเวลา (Tell a Time)
+- ✅ ระบบบอกเวลา (Tell a Time) - โหมดห้องเรียน
 - 🚧 นาฬิกาช้า/เร็ว (Clock Fast/Slow)
 - 📋 การคำนวณระยะเวลา (Time Duration)
 - 📋 การเปรียบเทียบเวลา (Time Comparison)
-- 📋 ระบบบันทึกคะแนน (Scoring System)
+- 📋 **ระบบแบบฝึกหัดส่วนตัว** (Practice Mode with Login)
+  - Student authentication & profiles
+  - แบบฝึกหัดอัตโนมัติ
+  - ระบบตรวจคำตอบ
+  - ประวัติและสถิติ
+  - กระดานคะแนน
+- 📋 Dashboard สำหรับครูดูสถิติของนักเรียน
 
 ## 🐛 Known Issues
 

@@ -227,6 +227,87 @@ APP_DEBUG=false
 APP_URL=https://your-domain.com
 ```
 
+### 🌐 Deploy บน Ploi.io
+
+#### 1. ติดตั้ง pnpm (แนะนำ)
+
+เข้าไปที่ Server > Terminal และรันคำสั่ง:
+
+```bash
+# ติดตั้ง pnpm แบบ global
+curl -fsSL https://get.pnpm.io/install.sh | sh -
+
+# หรือใช้ npm
+npm install -g pnpm
+
+# ตรวจสอบการติดตั้ง
+pnpm --version
+```
+
+#### 2. แก้ไข Deploy Script
+
+ใน Ploi.io > Site > Deploy Script แก้เป็น:
+
+```bash
+cd /home/ploi/your-domain.com
+git pull origin main
+
+# ติดตั้ง Composer dependencies
+composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+
+# ติดตั้ง dependencies ด้วย pnpm
+pnpm install
+
+# Build assets
+pnpm run build
+
+# Laravel optimizations
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+php artisan migrate --force
+
+# เคลียร์ cache เก่า
+php artisan cache:clear
+
+# Restart services
+echo "✅ Deployment completed!"
+```
+
+#### 3. Environment Variables
+
+ตั้งค่าใน Ploi.io > Site > Environment:
+
+```env
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://your-domain.com
+CACHE_DRIVER=file
+SESSION_DRIVER=file
+```
+
+#### 4. Build สำหรับครั้งแรก
+
+```bash
+cd /home/ploi/your-domain.com
+
+# ติดตั้ง pnpm (ถ้ายังไม่มี)
+curl -fsSL https://get.pnpm.io/install.sh | sh -
+
+# Reload shell เพื่อให้ pnpm ใช้งานได้
+source ~/.bashrc
+# หรือ
+source ~/.zshrc
+
+# ติดตั้งและ build
+pnpm install
+pnpm run build
+```
+
+#### 5. Auto Deploy
+
+เปิดใช้งาน Quick Deploy หรือเชื่อม GitHub Webhook เพื่อ deploy อัตโนมัติเมื่อ push code
+
 ### Web Server Configuration
 
 **Apache (.htaccess):**
@@ -279,17 +360,65 @@ server {
 1. **เครื่อง Server (ครู)**:
    - เชื่อมต่อ WiFi โรงเรียน
    - รัน Laravel server ด้วย `--host=0.0.0.0`
-   - เปิดหน้าครูบนเครื่องตัวเอง
+   - **สร้างบัญชีครู**: เข้า `http://localhost:8000/register` และลงทะเบียน
+   - **Login**: เข้า `http://localhost:8000/login`
+   - เปิดหน้าครูบนเครื่องตัวเอง: `http://localhost:8000/teacher`
 
 2. **จอแสดงผลนักเรียน**:
    - เชื่อมต่อ WiFi เดียวกัน
    - เปิดเบราว์เซอร์ไปที่ `http://[IP-ครู]:8000/student`
+   - **ไม่ต้อง login** - เปิดใช้งานได้เลย
    - ตั้งเป็น Fullscreen (F11)
 
 3. **Tips**:
    - ใช้ Chrome/Firefox ในโหมด Kiosk สำหรับจอนักเรียน
    - ปิด screensaver/sleep mode
    - ตั้ง bookmark สำหรับเข้าถึงง่าย
+   - **สำคัญ**: เฉพาะครูเท่านั้นที่ต้อง login (หน้านักเรียนไม่ต้อง)
+
+### 🔐 การจัดการ Authentication
+
+#### สร้างบัญชีครูคนแรก
+
+```bash
+# วิธีที่ 1: ผ่านหน้าเว็บ (แนะนำ)
+# เปิดเบราว์เซอร์ไปที่ /register
+
+# วิธีที่ 2: ผ่าน Tinker (สำหรับ admin)
+php artisan tinker
+
+# สร้าง user ใหม่
+$user = new App\Models\User();
+$user->name = 'ครูสมชาย';
+$user->email = 'teacher@school.ac.th';
+$user->password = bcrypt('password123');
+$user->save();
+```
+
+#### ปิดการลงทะเบียนใหม่ (Production)
+
+ถ้าต้องการให้เฉพาะ admin สร้างบัญชีครู แก้ไข `config/fortify.php`:
+
+```php
+'features' => [
+    // Features::registration(), // ปิดการลงทะเบียนผ่านหน้าเว็บ
+    Features::resetPasswords(),
+    // ...
+],
+```
+
+หรือแก้ไข `routes/web.php`:
+
+```php
+Route::get('/', function () {
+    return Inertia::render('Welcome', [
+        'canLogin' => Route::has('login'),
+        'canRegister' => false, // ปิดปุ่ม Register
+        'laravelVersion' => Application::VERSION,
+        'phpVersion' => PHP_VERSION,
+    ]);
+});
+```
 
 ## 🆘 ต้องการความช่วยเหลือ?
 

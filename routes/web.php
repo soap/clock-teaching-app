@@ -17,7 +17,7 @@ Route::get('/', function () {
     ]);
 });
 
-// Student routes
+// Student routes (ไม่ต้อง login)
 Route::get('/student', function () {
     return Inertia::render('StudentMenu');
 })->name('student');
@@ -26,15 +26,7 @@ Route::get('/student/tell-a-time', function () {
     return Inertia::render('Student');
 })->name('student.tell-a-time');
 
-// Teacher routes
-Route::get('/teacher', function () {
-    return Inertia::render('TeacherMenu');
-})->name('teacher');
-
-Route::get('/teacher/tell-a-time', function () {
-    return Inertia::render('Teacher');
-})->name('teacher.tell-a-time');
-
+// Protected routes (ต้อง login)
 Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
@@ -43,4 +35,13 @@ Route::middleware([
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
     })->name('dashboard');
+
+    // Teacher routes (ต้อง login เพื่อป้องกันการแก้ไขโจทย์โดยไม่ได้รับอนุญาต)
+    Route::get('/teacher', function () {
+        return Inertia::render('TeacherMenu');
+    })->name('teacher');
+
+    Route::get('/teacher/tell-a-time', function () {
+        return Inertia::render('Teacher');
+    })->name('teacher.tell-a-time');
 });
