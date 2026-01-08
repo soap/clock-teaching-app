@@ -23,7 +23,7 @@
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/yourusername/clock-teaching-app.git
+git clone https://github.com/soap/clock-teaching-app.git
 cd clock-teaching-app
 ```
 
