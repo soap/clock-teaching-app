@@ -28,10 +28,10 @@
                     <div class="space-y-6">
                         <!-- Show Answer - Digital Clocks -->
                         <div v-if="currentQuestion.show_answer" class="space-y-3">
-                            <!-- เฉลยกลางวัน -->
+                            <!-- เฉลยเช้า -->
                             <div class="bg-gradient-to-br from-orange-500 to-yellow-500 rounded-2xl shadow-2xl p-4 text-center">
                                 <div class="text-white mb-2">
-                                    <p class="text-xl font-semibold">☀️ กลางวัน (AM)</p>
+                                    <p class="text-xl font-semibold">☀️ เช้า (AM)</p>
                                 </div>
 
                                 <div class="bg-black/30 rounded-xl py-6 px-4 backdrop-blur-sm space-y-2">
@@ -47,10 +47,10 @@
                                 </div>
                             </div>
 
-                            <!-- เฉลยกลางคืน -->
+                            <!-- เฉลยบ่าย -->
                             <div class="bg-gradient-to-br from-indigo-600 to-blue-600 rounded-2xl shadow-2xl p-4 text-center">
                                 <div class="text-white mb-2">
-                                    <p class="text-xl font-semibold">🌙 กลางคืน (PM)</p>
+                                    <p class="text-xl font-semibold">🌙 บ่าย (PM)</p>
                                 </div>
 
                                 <div class="bg-black/30 rounded-xl py-6 px-4 backdrop-blur-sm space-y-2">
@@ -76,7 +76,7 @@
                                 <div class="flex items-start gap-3">
                                     <span class="text-2xl">🕐</span>
                                     <p class="text-gray-700">
-                                        <strong>เข็มสั้น</strong> = ชั่วโมง (0-11)
+                                        <strong>เข็มสั้น</strong> = ชั่วโมง {{ currentQuestion.format === '12h' ? '(0-11)' : '(0-23)' }}
                                     </p>
                                 </div>
                                 <div class="flex items-start gap-3">
@@ -85,18 +85,34 @@
                                         <strong>เข็มยาว</strong> = นาที (0-59)
                                     </p>
                                 </div>
-                                <div class="flex items-start gap-3">
-                                    <span class="text-2xl">☀️</span>
-                                    <p class="text-gray-700">
-                                        <strong>AM</strong> = กลางวัน (00:00-11:59)
-                                    </p>
-                                </div>
-                                <div class="flex items-start gap-3">
-                                    <span class="text-2xl">🌙</span>
-                                    <p class="text-gray-700">
-                                        <strong>PM</strong> = กลางคืน (12:00-23:59)
-                                    </p>
-                                </div>
+                                <template v-if="currentQuestion.format === '12h'">
+                                    <div class="flex items-start gap-3">
+                                        <span class="text-2xl">☀️</span>
+                                        <p class="text-gray-700">
+                                            <strong>AM</strong> = เช้า (00:00-11:59)
+                                        </p>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <span class="text-2xl">🌙</span>
+                                        <p class="text-gray-700">
+                                            <strong>PM</strong> = บ่าย (12:00-23:59)
+                                        </p>
+                                    </div>
+                                </template>
+                                <template v-else>
+                                    <div class="flex items-start gap-3">
+                                        <span class="text-2xl">🌅</span>
+                                        <p class="text-gray-700">
+                                            <strong>เช้า</strong> = 00:00-11:59
+                                        </p>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <span class="text-2xl">🌆</span>
+                                        <p class="text-gray-700">
+                                            <strong>บ่าย</strong> = 12:00-23:59
+                                        </p>
+                                    </div>
+                                </template>
                             </div>
                         </div>
                     </div>

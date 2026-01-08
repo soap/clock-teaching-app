@@ -16,7 +16,7 @@ class ClockStateController extends Controller
         return response()->json([
             'success' => true,
             'data' => $state,
-            'has_question' => !is_null($state),
+            'has_question' => ! is_null($state),
         ]);
     }
 
@@ -42,7 +42,7 @@ class ClockStateController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $state
+            'data' => $state,
         ]);
     }
 
@@ -55,7 +55,7 @@ class ClockStateController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Clock state cleared'
+            'message' => 'Clock state cleared',
         ]);
     }
 }

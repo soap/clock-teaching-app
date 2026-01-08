@@ -36,7 +36,7 @@ class TeacherController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => cache('clock_current_state')
+            'data' => cache('clock_current_state'),
         ]);
     }
 
@@ -49,7 +49,7 @@ class TeacherController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Question cleared'
+            'message' => 'Question cleared',
         ]);
     }
 
@@ -59,7 +59,7 @@ class TeacherController extends Controller
     public function randomTime(Request $request)
     {
         $format = $request->input('format', '12h');
-        
+
         $maxHour = $format === '12h' ? 11 : 23;
         $hour = rand(0, $maxHour);
         $minute = rand(0, 59);
@@ -69,7 +69,7 @@ class TeacherController extends Controller
             'data' => [
                 'hour' => $hour,
                 'minute' => $minute,
-            ]
+            ],
         ]);
     }
 }
