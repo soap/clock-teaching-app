@@ -1,0 +1,15 @@
+.
+./routes
+./bootstrap
+./resources
+./resources/js
+./resources/js/Pages
+./resources/js/Components
+./resources/js/Layouts
+./resources/js/{Pages,Components,Layouts}
+./resources/views
+./resources/css
+./app
+./app/Http
+./app/Http/Controllers
+./app/Http/Middleware
