@@ -14,84 +14,76 @@
 
 ## 🚀 การติดตั้ง
 
-### 1. ติดตั้ง Laravel Project ใหม่
+### ข้อกำหนดเบื้องต้น
+- PHP 8.2+
+- Composer
+- Node.js 18+ และ npm/pnpm
+- Git
+
+### 1. Clone Repository
 
 ```bash
-composer create-project laravel/laravel clock-teaching-app
+git clone https://github.com/yourusername/clock-teaching-app.git
 cd clock-teaching-app
 ```
 
-### 2. ติดตั้ง Inertia.js และ Dependencies
+### 2. ติดตั้ง Dependencies
 
 ```bash
-composer require inertiajs/inertia-laravel
-npm install @inertiajs/vue3
-npm install -D @vitejs/plugin-vue
-npm install -D tailwindcss postcss autoprefixer
-npx tailwindcss init -p
+# Backend dependencies
+composer install
+
+# Frontend dependencies
+npm install
+# หรือใช้ pnpm
+pnpm install
 ```
 
-### 3. คัดลอกไฟล์จาก Repository นี้
-
-คัดลอกไฟล์ทั้งหมดจากโฟลเดอร์นี้ไปยัง Laravel project ของคุณ:
+### 3. ตั้งค่า Environment
 
 ```bash
-# Controller
-app/Http/Controllers/TeacherController.php
-app/Http/Controllers/StudentController.php
-app/Http/Controllers/ClockStateController.php
-
-# Routes
-routes/web.php
-
-# Vue Components & Pages
-resources/js/app.js
-resources/js/Pages/Teacher.vue
-resources/js/Pages/Student.vue
-resources/js/Components/AnalogClock.vue
-
-# Layouts
-resources/js/Layouts/AppLayout.vue
-
-# Views
-resources/views/app.blade.php
-
-# Config
-vite.config.js
-tailwind.config.js
-```
-
-### 4. ตั้งค่า Environment
-
-```bash
+# คัดลอกไฟล์ environment
 cp .env.example .env
+
+# สร้าง application key
 php artisan key:generate
 ```
 
-แก้ไข `.env`:
-```
+แก้ไข `.env` (ถ้าจำเป็น):
+```env
 APP_NAME="Clock Teaching App"
 APP_URL=http://localhost:8000
 # หรือใช้ IP ของเครื่องใน network เช่น
 # APP_URL=http://192.168.1.100:8000
+
+# Cache driver (ใช้ file cache)
+CACHE_DRIVER=file
 ```
 
-### 5. สร้าง Table และ Cache
+### 4. เตรียมฐานข้อมูลและ Cache
 
 ```bash
+# รัน migrations (ถ้ามี)
 php artisan migrate
+
+# ล้าง cache
 php artisan cache:clear
+php artisan config:clear
 ```
 
-### 6. Build Frontend และรัน Server
+### 5. รัน Application
 
 ```bash
-npm install
+# Terminal 1: รัน Vite dev server
 npm run dev
+# หรือ
+pnpm dev
 
-# Terminal ใหม่
+# Terminal 2: รัน Laravel server
 php artisan serve --host=0.0.0.0
 ```
+
+✅ เปิดเบราว์เซอร์ไปที่: `http://localhost:8000`
 
 ## 📱 การใช้งาน
 
